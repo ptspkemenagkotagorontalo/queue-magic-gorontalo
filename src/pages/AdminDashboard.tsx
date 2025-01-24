@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Navigation from "@/components/Navigation";
 import {
   Table,
   TableBody,
@@ -58,7 +59,6 @@ const AdminDashboard = () => {
   const callNumber = (id: number) => {
     const queueToCall = queues.find((q) => q.id === id);
     
-    // Jika antrian sudah dipanggil atau tidak ditemukan, jangan lakukan apa-apa
     if (!queueToCall || queueToCall.status === "called") {
       return;
     }
@@ -81,11 +81,11 @@ const AdminDashboard = () => {
     });
   };
 
-  // Get only today's queues
   const todayQueues = queues.filter(queue => isToday(queue.createdAt));
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      <Navigation />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-primary mb-8">
           Sistem Manajemen Antrian
