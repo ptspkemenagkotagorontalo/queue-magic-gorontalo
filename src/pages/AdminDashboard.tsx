@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface Queue {
   id: number;
@@ -56,25 +56,29 @@ const AdminDashboard = () => {
   }, [queues]);
 
   const callNumber = (id: number) => {
+    const queueToCall = queues.find((q) => q.id === id);
+    
+    // Jika antrian sudah dipanggil atau tidak ditemukan, jangan lakukan apa-apa
+    if (!queueToCall || queueToCall.status === "called") {
+      return;
+    }
+
     setQueues((prev) =>
       prev.map((q) =>
         q.id === id ? { ...q, status: "called" as const } : q
       )
     );
 
-    const queue = queues.find((q) => q.id === id);
-    if (queue) {
-      const announcement = `Nomor antrian ${queue.number} untuk layanan ${queue.service}, silakan menuju ke loket`;
-      
-      const speech = new SpeechSynthesisUtterance(announcement);
-      speech.lang = 'id-ID';
-      window.speechSynthesis.speak(speech);
+    const announcement = `Nomor antrian ${queueToCall.number} untuk layanan ${queueToCall.service}, silakan menuju ke loket`;
+    
+    const speech = new SpeechSynthesisUtterance(announcement);
+    speech.lang = 'id-ID';
+    window.speechSynthesis.speak(speech);
 
-      toast({
-        title: "Nomor Antrian Dipanggil",
-        description: `Memanggil nomor ${queue.number} untuk ${queue.service}`,
-      });
-    }
+    toast({
+      title: "Nomor Antrian Dipanggil",
+      description: `Memanggil nomor ${queueToCall.number} untuk ${queueToCall.service}`,
+    });
   };
 
   // Get only today's queues
@@ -143,7 +147,7 @@ const AdminDashboard = () => {
                       disabled={queue.status === "called"}
                       variant={queue.status === "called" ? "outline" : "default"}
                     >
-                      Panggil Nomor
+                      {queue.status === "called" ? "Sudah Dipanggil" : "Panggil Nomor"}
                     </Button>
                   </TableCell>
                 </TableRow>
