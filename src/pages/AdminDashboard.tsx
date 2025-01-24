@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,16 +16,44 @@ interface Queue {
   number: number;
   service: string;
   status: "waiting" | "called";
+  createdAt: Date;
 }
 
 const AdminDashboard = () => {
-  const [queues, setQueues] = useState<Queue[]>([
-    { id: 1, number: 1, service: "Administration", status: "waiting" },
-    { id: 2, number: 2, service: "Madrasah Education", status: "waiting" },
-    { id: 3, number: 3, service: "PAI", status: "waiting" },
-  ]);
-
+  const [queues, setQueues] = useState<Queue[]>([]);
   const { toast } = useToast();
+
+  // Function to check if a date is today
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+  };
+
+  // Initialize queues with today's date
+  useEffect(() => {
+    const initialQueues = [
+      { id: 1, number: 1, service: "Administration", status: "waiting", createdAt: new Date() },
+      { id: 2, number: 2, service: "Madrasah Education", status: "waiting", createdAt: new Date() },
+      { id: 3, number: 3, service: "PAI", status: "waiting", createdAt: new Date() },
+    ];
+    setQueues(initialQueues);
+  }, []);
+
+  // Reset numbers if it's a new day
+  useEffect(() => {
+    const checkAndResetNumbers = () => {
+      const hasOldNumbers = queues.some(queue => !isToday(queue.createdAt));
+      if (hasOldNumbers) {
+        setQueues([]);
+      }
+    };
+
+    // Check every minute
+    const interval = setInterval(checkAndResetNumbers, 60000);
+    return () => clearInterval(interval);
+  }, [queues]);
 
   const callNumber = (id: number) => {
     setQueues((prev) =>
@@ -36,60 +64,64 @@ const AdminDashboard = () => {
 
     const queue = queues.find((q) => q.id === id);
     if (queue) {
-      // Use speech synthesis
-      const speech = new SpeechSynthesisUtterance(
-        `Queue number ${queue.number} for ${queue.service}, please proceed to the counter`
-      );
+      // Use Indonesian language for announcements
+      const announcement = `Nomor antrian ${queue.number} untuk layanan ${queue.service}, silakan menuju ke loket`;
+      
+      const speech = new SpeechSynthesisUtterance(announcement);
+      speech.lang = 'id-ID'; // Set language to Indonesian
       window.speechSynthesis.speak(speech);
 
       toast({
-        title: "Queue Number Called",
-        description: `Called number ${queue.number} for ${queue.service}`,
+        title: "Nomor Antrian Dipanggil",
+        description: `Memanggil nomor ${queue.number} untuk ${queue.service}`,
       });
     }
   };
+
+  // Get only today's queues
+  const todayQueues = queues.filter(queue => isToday(queue.createdAt));
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-primary mb-8">
-          Queue Management Dashboard
+          Sistem Manajemen Antrian
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Total Waiting</h3>
+            <h3 className="text-lg font-semibold mb-2">Total Menunggu</h3>
             <p className="text-4xl font-bold text-primary">
-              {queues.filter((q) => q.status === "waiting").length}
+              {todayQueues.filter((q) => q.status === "waiting").length}
             </p>
           </Card>
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Total Called</h3>
+            <h3 className="text-lg font-semibold mb-2">Total Dipanggil</h3>
             <p className="text-4xl font-bold text-accent">
-              {queues.filter((q) => q.status === "called").length}
+              {todayQueues.filter((q) => q.status === "called").length}
             </p>
           </Card>
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Total Today</h3>
+            <h3 className="text-lg font-semibold mb-2">Total Hari Ini</h3>
             <p className="text-4xl font-bold text-secondary">
-              {queues.length}
+              {todayQueues.length}
             </p>
           </Card>
         </div>
 
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Active Queues</h2>
+          <h2 className="text-xl font-semibold mb-4">Antrian Aktif</h2>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Queue Number</TableHead>
-                <TableHead>Service</TableHead>
+                <TableHead>Nomor Antrian</TableHead>
+                <TableHead>Layanan</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {queues.map((queue) => (
+              {todayQueues.map((queue) => (
                 <TableRow key={queue.id}>
                   <TableCell className="font-mono font-bold">
                     {queue.number}
@@ -103,7 +135,7 @@ const AdminDashboard = () => {
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      {queue.status}
+                      {queue.status === "waiting" ? "Menunggu" : "Dipanggil"}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -112,7 +144,7 @@ const AdminDashboard = () => {
                       disabled={queue.status === "called"}
                       variant={queue.status === "called" ? "outline" : "default"}
                     >
-                      Call Number
+                      Panggil Nomor
                     </Button>
                   </TableCell>
                 </TableRow>
