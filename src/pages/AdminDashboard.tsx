@@ -34,9 +34,9 @@ const AdminDashboard = () => {
   // Initialize queues with today's date
   useEffect(() => {
     const initialQueues: Queue[] = [
-      { id: 1, number: 1, service: "Administration", status: "waiting" as const, createdAt: new Date() },
-      { id: 2, number: 2, service: "Madrasah Education", status: "waiting" as const, createdAt: new Date() },
-      { id: 3, number: 3, service: "PAI", status: "waiting" as const, createdAt: new Date() },
+      { id: 1, number: 1, service: "Tata Usaha", status: "waiting" as const, createdAt: new Date() },
+      { id: 2, number: 2, service: "Pendidikan Madrasah", status: "waiting" as const, createdAt: new Date() },
+      { id: 3, number: 3, service: "P.A.I", status: "waiting" as const, createdAt: new Date() },
     ];
     setQueues(initialQueues);
   }, []);

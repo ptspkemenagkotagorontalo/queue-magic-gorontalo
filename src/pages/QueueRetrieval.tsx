@@ -15,15 +15,15 @@ import {
 } from "lucide-react";
 
 const services = [
-  { id: "tata-usaha", name: "Administration", icon: Briefcase },
-  { id: "madrasah", name: "Madrasah Education", icon: School },
-  { id: "pontren", name: "Pontren PD", icon: BookOpen },
-  { id: "pai", name: "PAI", icon: GraduationCap },
-  { id: "haji", name: "Hajj and Umrah", icon: Heart },
+  { id: "tata-usaha", name: "Tata Usaha", icon: Briefcase },
+  { id: "madrasah", name: "Pendidikan Madrasah", icon: School },
+  { id: "pontren", name: "Diniyah dan Pontren", icon: BookOpen },
+  { id: "pai", name: "P.A.I", icon: GraduationCap },
+  { id: "haji", name: "Layanan Haji", icon: Heart },
   { id: "bimas", name: "Bimas Islam", icon: Users },
   { id: "zakat", name: "Zakat", icon: Landmark },
   { id: "wakaf", name: "Wakaf", icon: Building2 },
-  { id: "others", name: "Others", icon: LayoutGrid },
+  { id: "others", name: "Lainnya", icon: LayoutGrid },
 ];
 
 const QueueRetrieval = () => {

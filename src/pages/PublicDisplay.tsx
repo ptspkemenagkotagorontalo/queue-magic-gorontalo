@@ -9,10 +9,10 @@ interface QueueDisplay {
 
 const PublicDisplay = () => {
   const [currentQueues, setCurrentQueues] = useState<QueueDisplay[]>([
-    { number: 1, service: "Administration", status: "waiting" },
-    { number: 2, service: "Madrasah Education", status: "called" },
-    { number: 3, service: "PAI", status: "waiting" },
-    { number: 4, service: "Hajj and Umrah", status: "waiting" },
+    { number: 1, service: "Tata Usaha", status: "waiting" },
+    { number: 2, service: "Pendidikan Madrasah", status: "called" },
+    { number: 3, service: "P.A.I", status: "waiting" },
+    { number: 4, service: "Layanan Haji", status: "waiting" },
   ]);
 
   useEffect(() => {
