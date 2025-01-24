@@ -33,10 +33,10 @@ const AdminDashboard = () => {
 
   // Initialize queues with today's date
   useEffect(() => {
-    const initialQueues = [
-      { id: 1, number: 1, service: "Administration", status: "waiting", createdAt: new Date() },
-      { id: 2, number: 2, service: "Madrasah Education", status: "waiting", createdAt: new Date() },
-      { id: 3, number: 3, service: "PAI", status: "waiting", createdAt: new Date() },
+    const initialQueues: Queue[] = [
+      { id: 1, number: 1, service: "Administration", status: "waiting" as const, createdAt: new Date() },
+      { id: 2, number: 2, service: "Madrasah Education", status: "waiting" as const, createdAt: new Date() },
+      { id: 3, number: 3, service: "PAI", status: "waiting" as const, createdAt: new Date() },
     ];
     setQueues(initialQueues);
   }, []);
@@ -64,11 +64,10 @@ const AdminDashboard = () => {
 
     const queue = queues.find((q) => q.id === id);
     if (queue) {
-      // Use Indonesian language for announcements
       const announcement = `Nomor antrian ${queue.number} untuk layanan ${queue.service}, silakan menuju ke loket`;
       
       const speech = new SpeechSynthesisUtterance(announcement);
-      speech.lang = 'id-ID'; // Set language to Indonesian
+      speech.lang = 'id-ID';
       window.speechSynthesis.speak(speech);
 
       toast({
