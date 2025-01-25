@@ -1,3 +1,7 @@
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
+import { Link } from "react-router-dom";
+import Navigation from "@/components/Navigation";
+
 const Index = () => {
   const services = [
     { id: 1, name: "Tata Usaha", color: "bg-blue-500" },
