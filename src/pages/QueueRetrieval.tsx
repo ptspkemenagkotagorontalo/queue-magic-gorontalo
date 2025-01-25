@@ -1,31 +1,20 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
-import {
-  BookOpen,
-  Briefcase,
-  Building2,
-  GraduationCap,
-  Heart,
-  Landmark,
-  LayoutGrid,
-  School,
-  Users,
-  Printer,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 const services = [
-  { id: "tata-usaha", name: "Tata Usaha", icon: Briefcase },
-  { id: "madrasah", name: "Pendidikan Madrasah", icon: School },
-  { id: "pontren", name: "Diniyah dan Pontren", icon: BookOpen },
-  { id: "pai", name: "P.A.I", icon: GraduationCap },
-  { id: "haji", name: "Layanan Haji", icon: Heart },
-  { id: "bimas", name: "Bimas Islam", icon: Users },
-  { id: "zakat", name: "Zakat", icon: Landmark },
-  { id: "wakaf", name: "Wakaf", icon: Building2 },
-  { id: "others", name: "Lainnya", icon: LayoutGrid },
+  { id: "tata-usaha", name: "Tata Usaha" },
+  { id: "pendidikan-madrasah", name: "Pendidikan Madrasah" },
+  { id: "diniyah-pontren", name: "Diniyah dan Pontren" },
+  { id: "pai", name: "P.A.I" },
+  { id: "haji", name: "Layanan Haji" },
+  { id: "bimas-islam", name: "Bimas Islam" },
+  { id: "zakat", name: "Zakat" },
+  { id: "wakaf", name: "Wakaf" },
+  { id: "lainnya", name: "Lainnya" },
 ];
 
 const QueueRetrieval = () => {
@@ -33,28 +22,33 @@ const QueueRetrieval = () => {
   const [queueNumber, setQueueNumber] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const generateQueueNumber = (serviceId: string) => {
-    setSelectedService(serviceId);
+  const handleGetNumber = () => {
+    if (!selectedService) {
+      toast({
+        title: "Pilih Layanan",
+        description: "Silakan pilih jenis layanan terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simulate queue number generation
     const newNumber = Math.floor(Math.random() * 100) + 1;
     setQueueNumber(newNumber);
-    toast({
-      title: "Nomor Antrian Dibuat",
-      description: `Nomor antrian Anda adalah ${newNumber} untuk layanan ${
-        services.find((s) => s.id === serviceId)?.name
-      }`,
-    });
   };
 
   const handlePrint = () => {
     const printContent = `
       <div style="font-family: 'Courier New', monospace; text-align: center; padding: 20px;">
-        <h2 style="margin: 0;">Kementerian Agama</h2>
-        <h3 style="margin: 5px 0;">Kota Gorontalo</h3>
+        <h2 style="margin: 0;">KEMENTERIAN AGAMA</h2>
+        <h3 style="margin: 5px 0;">KOTA GORONTALO</h3>
         <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+        <p style="margin: 5px 0;">Nomor Antrian:</p>
         <h1 style="font-size: 48px; margin: 10px 0;">${queueNumber}</h1>
-        <p style="margin: 5px 0;">${services.find((s) => s.id === selectedService)?.name}</p>
+        <p style="margin: 5px 0;">Layanan:</p>
+        <h3 style="margin: 5px 0;">${services.find(s => s.id === selectedService)?.name}</h3>
         <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
-        <small>${new Date().toLocaleString('id-ID')}</small>
+        <p style="font-size: 12px;">${new Date().toLocaleString('id-ID')}</p>
       </div>
     `;
 
@@ -62,75 +56,68 @@ const QueueRetrieval = () => {
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
-      printWindow.focus();
       printWindow.print();
       printWindow.close();
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#F1F0FB] to-[#E6E9F0] p-8">
       <Navigation />
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary mb-2">
-            Kementerian Agama
-          </h1>
-          <p className="text-xl text-gray-600">Kota Gorontalo</p>
-        </div>
-
-        {!queueNumber ? (
-          <>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
-              Pilih Layanan
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {services.map((service) => (
-                <Button
-                  key={service.id}
-                  variant="outline"
-                  className="h-32 flex flex-col items-center justify-center gap-3 hover:bg-primary hover:text-white transition-colors"
-                  onClick={() => generateQueueNumber(service.id)}
-                >
-                  <service.icon className="h-8 w-8" />
-                  <span className="text-sm font-medium">{service.name}</span>
-                </Button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <Card className="p-8 text-center animate-fade-in">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              Nomor Antrian Anda
-            </h2>
-            <div className="text-8xl font-mono font-bold text-primary mb-6">
-              {queueNumber}
-            </div>
-            <p className="text-lg text-gray-600 mb-8">
-              Layanan:{" "}
-              {services.find((s) => s.id === selectedService)?.name}
+      <div className="max-w-4xl mx-auto mt-8">
+        <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-primary mb-2">
+              Sistem Antrian
+            </CardTitle>
+            <p className="text-muted-foreground">
+              Kementerian Agama Kota Gorontalo
             </p>
-            <div className="flex gap-4 justify-center">
-              <Button
-                onClick={() => {
-                  setQueueNumber(null);
-                  setSelectedService("");
-                }}
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
-              >
-                Ambil Nomor Baru
-              </Button>
-              <Button
-                onClick={handlePrint}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Printer className="h-4 w-4" />
-                Cetak Nomor
-              </Button>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="max-w-md mx-auto">
+              <Select onValueChange={setSelectedService} value={selectedService}>
+                <SelectTrigger className="w-full text-lg">
+                  <SelectValue placeholder="Pilih Layanan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id} className="text-base">
+                      {service.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </Card>
-        )}
+
+            {!queueNumber ? (
+              <Button
+                onClick={handleGetNumber}
+                className="w-full max-w-md mx-auto h-12 text-lg bg-primary hover:bg-primary/90"
+              >
+                Ambil Nomor Antrian
+              </Button>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="bg-secondary/10 p-8 rounded-lg">
+                  <h2 className="text-2xl font-semibold mb-2">Nomor Antrian Anda</h2>
+                  <div className="font-mono text-6xl font-bold text-primary">
+                    {queueNumber}
+                  </div>
+                  <p className="mt-2 text-lg text-muted-foreground">
+                    {services.find(s => s.id === selectedService)?.name}
+                  </p>
+                </div>
+                <Button
+                  onClick={handlePrint}
+                  className="bg-accent hover:bg-accent/90"
+                >
+                  Cetak Nomor Antrian
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
