@@ -26,6 +26,39 @@ const getLocalTime = () => {
   return toZonedTime(new Date(), TIME_ZONE);
 };
 
+// Get next queue number for a service
+export const getNextQueueNumber = async (service: string) => {
+  try {
+    const now = getLocalTime();
+    const todayStart = startOfDay(now);
+    const todayEnd = endOfDay(now);
+    
+    const queueRef = collection(db, 'queues');
+    const q = query(
+      queueRef,
+      where('service', '==', service),
+      where('createdAt', '>=', Timestamp.fromDate(todayStart)),
+      where('createdAt', '<=', Timestamp.fromDate(todayEnd)),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const queues = querySnapshot.docs.map(doc => doc.data());
+    
+    // If no queues exist for today, start from 1
+    if (queues.length === 0) {
+      return 1;
+    }
+    
+    // Get the highest number for today and add 1
+    const numbers = queues.map(q => q.number);
+    return Math.max(...numbers) + 1;
+  } catch (error) {
+    console.error('Error getting next queue number:', error);
+    throw error;
+  }
+};
+
 // Add a new queue number
 export const addQueueNumber = async (queueData: Omit<QueueItem, 'createdAt'>) => {
   try {
@@ -75,36 +108,6 @@ export const updateQueueStatus = async (queueId: string, status: 'waiting' | 'ca
     await updateDoc(queueRef, { status });
   } catch (error) {
     console.error('Error updating queue status:', error);
-    throw error;
-  }
-};
-
-// Get next queue number for a service
-export const getNextQueueNumber = async (service: string) => {
-  try {
-    const now = getLocalTime();
-    const todayStart = startOfDay(now);
-    const todayEnd = endOfDay(now);
-    
-    const queueRef = collection(db, 'queues');
-    const q = query(
-      queueRef,
-      where('service', '==', service),
-      where('createdAt', '>=', Timestamp.fromDate(todayStart)),
-      where('createdAt', '<=', Timestamp.fromDate(todayEnd)),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(q);
-    const queues = querySnapshot.docs.map(doc => doc.data());
-    
-    if (queues.length === 0) {
-      return 1;
-    }
-    
-    return Math.max(...queues.map(q => q.number)) + 1;
-  } catch (error) {
-    console.error('Error getting next queue number:', error);
     throw error;
   }
 };

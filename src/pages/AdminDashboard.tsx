@@ -42,14 +42,19 @@ const AdminDashboard = () => {
         setQueuesByDay(historical);
       } catch (error) {
         console.error('Error fetching queues:', error);
+        toast({
+          title: "Error",
+          description: "Gagal mengambil data antrian",
+          variant: "destructive",
+        });
       }
     };
 
     fetchQueues();
-    // Refresh data every minute
-    const interval = setInterval(fetchQueues, 60000);
+    // Refresh data every 30 seconds
+    const interval = setInterval(fetchQueues, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [toast]);
 
   const callNumber = async (id: string) => {
     const queueToCall = todayQueues.find((q) => q.id === id);
@@ -89,6 +94,10 @@ const AdminDashboard = () => {
   const formatDate = (date: Date) => {
     const zonedDate = toZonedTime(date, TIME_ZONE);
     return format(zonedDate, 'HH:mm:ss');
+  };
+
+  const formatDayDate = (dateStr: string) => {
+    return format(new Date(dateStr), 'dd MMMM yyyy');
   };
 
   return (
@@ -133,76 +142,88 @@ const AdminDashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {todayQueues.map((queue) => (
-                <TableRow key={queue.id}>
-                  <TableCell className="font-mono font-bold">
-                    {queue.number}
-                  </TableCell>
-                  <TableCell>{queue.service}</TableCell>
-                  <TableCell>{formatDate(queue.createdAt)}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded-full text-sm ${
-                        queue.status === "waiting"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {queue.status === "waiting" ? "Menunggu" : "Dipanggil"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      onClick={() => callNumber(queue.id)}
-                      disabled={queue.status === "called"}
-                      variant={queue.status === "called" ? "outline" : "default"}
-                    >
-                      {queue.status === "called" ? "Sudah Dipanggil" : "Panggil Nomor"}
-                    </Button>
+              {todayQueues.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">
+                    Belum ada antrian hari ini
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                todayQueues.map((queue) => (
+                  <TableRow key={queue.id}>
+                    <TableCell className="font-mono font-bold">
+                      {queue.number}
+                    </TableCell>
+                    <TableCell>{queue.service}</TableCell>
+                    <TableCell>{formatDate(queue.createdAt)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded-full text-sm ${
+                          queue.status === "waiting"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {queue.status === "waiting" ? "Menunggu" : "Dipanggil"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => callNumber(queue.id)}
+                        disabled={queue.status === "called"}
+                        variant={queue.status === "called" ? "outline" : "default"}
+                      >
+                        {queue.status === "called" ? "Sudah Dipanggil" : "Panggil Nomor"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </Card>
 
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Riwayat Antrian</h2>
-          {Object.entries(queuesByDay).map(([date, queues]) => (
-            <div key={date} className="mb-8">
-              <h3 className="text-lg font-semibold mb-4">{format(new Date(date), 'dd MMMM yyyy')}</h3>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nomor Antrian</TableHead>
-                    <TableHead>Layanan</TableHead>
-                    <TableHead>Waktu</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {queues.map((queue: Queue) => (
-                    <TableRow key={queue.id}>
-                      <TableCell className="font-mono font-bold">{queue.number}</TableCell>
-                      <TableCell>{queue.service}</TableCell>
-                      <TableCell>{formatDate(queue.createdAt)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-sm ${
-                            queue.status === "waiting"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {queue.status === "waiting" ? "Menunggu" : "Dipanggil"}
-                        </span>
-                      </TableCell>
+          {Object.keys(queuesByDay).length === 0 ? (
+            <p className="text-center py-4">Belum ada riwayat antrian</p>
+          ) : (
+            Object.entries(queuesByDay).map(([date, queues]) => (
+              <div key={date} className="mb-8">
+                <h3 className="text-lg font-semibold mb-4">{formatDayDate(date)}</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nomor Antrian</TableHead>
+                      <TableHead>Layanan</TableHead>
+                      <TableHead>Waktu</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ))}
+                  </TableHeader>
+                  <TableBody>
+                    {queues.map((queue: Queue) => (
+                      <TableRow key={queue.id}>
+                        <TableCell className="font-mono font-bold">{queue.number}</TableCell>
+                        <TableCell>{queue.service}</TableCell>
+                        <TableCell>{formatDate(queue.createdAt)}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`px-2 py-1 rounded-full text-sm ${
+                              queue.status === "waiting"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
+                          >
+                            {queue.status === "waiting" ? "Menunggu" : "Dipanggil"}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ))
+          )}
         </Card>
       </div>
     </div>
