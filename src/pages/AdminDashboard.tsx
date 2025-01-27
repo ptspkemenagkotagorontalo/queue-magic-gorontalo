@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getTodayQueues, updateQueueStatus, getQueuesByDay } from "@/lib/firestore";
 import { format } from "date-fns";
-import { utcToZonedTime } from "date-fns-tz";
+import { toZonedTime } from "date-fns-tz";
 
 interface Queue {
   id: string;
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
   };
 
   const formatDate = (date: Date) => {
-    const zonedDate = utcToZonedTime(date, TIME_ZONE);
+    const zonedDate = toZonedTime(date, TIME_ZONE);
     return format(zonedDate, 'HH:mm:ss');
   };
 

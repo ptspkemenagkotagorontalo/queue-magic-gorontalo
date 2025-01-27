@@ -11,7 +11,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { format, startOfDay, endOfDay } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 
 export interface QueueItem {
   number: number;
@@ -23,7 +23,7 @@ export interface QueueItem {
 const TIME_ZONE = 'Asia/Singapore'; // GMT+8
 
 const getLocalTime = () => {
-  return utcToZonedTime(new Date(), TIME_ZONE);
+  return toZonedTime(new Date(), TIME_ZONE);
 };
 
 // Add a new queue number
@@ -127,7 +127,7 @@ export const getQueuesByDay = async () => {
 
     // Group queues by day
     const groupedQueues = queues.reduce((groups: Record<string, any[]>, queue) => {
-      const date = format(utcToZonedTime(queue.createdAt, TIME_ZONE), 'yyyy-MM-dd');
+      const date = format(toZonedTime(queue.createdAt, TIME_ZONE), 'yyyy-MM-dd');
       if (!groups[date]) {
         groups[date] = [];
       }
