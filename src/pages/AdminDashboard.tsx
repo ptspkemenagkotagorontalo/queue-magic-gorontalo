@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import Navigation from "@/components/Navigation"
-import { getTodayQueues, updateQueueStatus, getQueuesByDay } from "@/lib/firestore"
+import { getTodayQueues, updateQueueStatus, getQueuesByDay, Queue } from "@/lib/firestore"
 import QueueStats from "@/components/admin/QueueStats"
 import ActiveQueues from "@/components/admin/ActiveQueues"
 import QueueHistory from "@/components/admin/QueueHistory"
-import { Queue } from "@/lib/firestore"
 
 const AdminDashboard = () => {
   const [todayQueues, setTodayQueues] = useState<Queue[]>([])

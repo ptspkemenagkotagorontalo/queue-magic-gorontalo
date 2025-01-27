@@ -13,7 +13,8 @@ import {
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-export interface QueueItem {
+export interface Queue {
+  id?: string;
   number: number;
   service: string;
   status: 'waiting' | 'called';
@@ -60,7 +61,7 @@ export const getNextQueueNumber = async (service: string) => {
 };
 
 // Add a new queue number
-export const addQueueNumber = async (queueData: Omit<QueueItem, 'createdAt'>) => {
+export const addQueueNumber = async (queueData: Omit<Queue, 'createdAt'>) => {
   try {
     const queueRef = collection(db, 'queues');
     const docRef = await addDoc(queueRef, {
