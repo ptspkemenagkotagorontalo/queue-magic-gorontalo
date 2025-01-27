@@ -11,77 +11,85 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { getTodayQueues, updateQueueStatus, getQueuesByDay } from "@/lib/firestore";
+import { format } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 
 interface Queue {
-  id: number;
+  id: string;
   number: number;
   service: string;
   status: "waiting" | "called";
   createdAt: Date;
 }
 
+const TIME_ZONE = 'Asia/Singapore'; // GMT+8
+
 const AdminDashboard = () => {
-  const [queues, setQueues] = useState<Queue[]>([]);
+  const [todayQueues, setTodayQueues] = useState<Queue[]>([]);
+  const [queuesByDay, setQueuesByDay] = useState<Record<string, Queue[]>>({});
   const { toast } = useToast();
 
-  // Function to check if a date is today
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
-  };
-
-  // Initialize queues with today's date
+  // Fetch today's queues and historical data
   useEffect(() => {
-    const initialQueues: Queue[] = [
-      { id: 1, number: 1, service: "Tata Usaha", status: "waiting" as const, createdAt: new Date() },
-      { id: 2, number: 2, service: "Pendidikan Madrasah", status: "waiting" as const, createdAt: new Date() },
-      { id: 3, number: 3, service: "P.A.I", status: "waiting" as const, createdAt: new Date() },
-    ];
-    setQueues(initialQueues);
-  }, []);
-
-  // Reset numbers if it's a new day
-  useEffect(() => {
-    const checkAndResetNumbers = () => {
-      const hasOldNumbers = queues.some(queue => !isToday(queue.createdAt));
-      if (hasOldNumbers) {
-        setQueues([]);
+    const fetchQueues = async () => {
+      try {
+        const [today, historical] = await Promise.all([
+          getTodayQueues(),
+          getQueuesByDay()
+        ]);
+        setTodayQueues(today as Queue[]);
+        setQueuesByDay(historical);
+      } catch (error) {
+        console.error('Error fetching queues:', error);
       }
     };
 
-    // Check every minute
-    const interval = setInterval(checkAndResetNumbers, 60000);
+    fetchQueues();
+    // Refresh data every minute
+    const interval = setInterval(fetchQueues, 60000);
     return () => clearInterval(interval);
-  }, [queues]);
+  }, []);
 
-  const callNumber = (id: number) => {
-    const queueToCall = queues.find((q) => q.id === id);
+  const callNumber = async (id: string) => {
+    const queueToCall = todayQueues.find((q) => q.id === id);
     
     if (!queueToCall || queueToCall.status === "called") {
       return;
     }
 
-    setQueues((prev) =>
-      prev.map((q) =>
-        q.id === id ? { ...q, status: "called" as const } : q
-      )
-    );
+    try {
+      await updateQueueStatus(id, "called");
+      setTodayQueues(prev =>
+        prev.map(q =>
+          q.id === id ? { ...q, status: "called" } : q
+        )
+      );
 
-    const announcement = `Nomor antrian ${queueToCall.number} untuk layanan ${queueToCall.service}, silakan menuju ke loket`;
-    
-    const speech = new SpeechSynthesisUtterance(announcement);
-    speech.lang = 'id-ID';
-    window.speechSynthesis.speak(speech);
+      const announcement = `Nomor antrian ${queueToCall.number} untuk layanan ${queueToCall.service}, silakan menuju ke loket`;
+      
+      const speech = new SpeechSynthesisUtterance(announcement);
+      speech.lang = 'id-ID';
+      window.speechSynthesis.speak(speech);
 
-    toast({
-      title: "Nomor Antrian Dipanggil",
-      description: `Memanggil nomor ${queueToCall.number} untuk ${queueToCall.service}`,
-    });
+      toast({
+        title: "Nomor Antrian Dipanggil",
+        description: `Memanggil nomor ${queueToCall.number} untuk ${queueToCall.service}`,
+      });
+    } catch (error) {
+      console.error('Error calling number:', error);
+      toast({
+        title: "Error",
+        description: "Gagal memanggil nomor antrian",
+        variant: "destructive",
+      });
+    }
   };
 
-  const todayQueues = queues.filter(queue => isToday(queue.createdAt));
+  const formatDate = (date: Date) => {
+    const zonedDate = utcToZonedTime(date, TIME_ZONE);
+    return format(zonedDate, 'HH:mm:ss');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -112,13 +120,14 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Card className="p-6">
+        <Card className="p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Antrian Aktif</h2>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nomor Antrian</TableHead>
                 <TableHead>Layanan</TableHead>
+                <TableHead>Waktu</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Aksi</TableHead>
               </TableRow>
@@ -130,6 +139,7 @@ const AdminDashboard = () => {
                     {queue.number}
                   </TableCell>
                   <TableCell>{queue.service}</TableCell>
+                  <TableCell>{formatDate(queue.createdAt)}</TableCell>
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-sm ${
@@ -154,6 +164,45 @@ const AdminDashboard = () => {
               ))}
             </TableBody>
           </Table>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Riwayat Antrian</h2>
+          {Object.entries(queuesByDay).map(([date, queues]) => (
+            <div key={date} className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">{format(new Date(date), 'dd MMMM yyyy')}</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nomor Antrian</TableHead>
+                    <TableHead>Layanan</TableHead>
+                    <TableHead>Waktu</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {queues.map((queue: Queue) => (
+                    <TableRow key={queue.id}>
+                      <TableCell className="font-mono font-bold">{queue.number}</TableCell>
+                      <TableCell>{queue.service}</TableCell>
+                      <TableCell>{formatDate(queue.createdAt)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-sm ${
+                            queue.status === "waiting"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {queue.status === "waiting" ? "Menunggu" : "Dipanggil"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ))}
         </Card>
       </div>
     </div>
