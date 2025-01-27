@@ -16,10 +16,10 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-[#F2FCE2] via-[#FEF7CD] to-[#FDE1D3]">
       <Navigation />
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-primary mb-8 text-center">
+        <h1 className="text-4xl font-bold text-primary mb-8 text-center font-sans">
           Sistem Antrian Kementerian Agama Kota Gorontalo
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -29,7 +29,7 @@ const Index = () => {
               className={`${service.color} hover:scale-105 transform transition-all duration-200 rounded-xl shadow-lg group`}
             >
               <div className="p-6 h-full flex items-center justify-center backdrop-blur-sm backdrop-brightness-110 rounded-xl">
-                <h2 className="text-xl font-semibold text-white text-center group-hover:scale-105 transition-transform duration-200">
+                <h2 className="text-xl font-semibold text-white text-center group-hover:scale-105 transition-transform duration-200 font-sans">
                   {service.name}
                 </h2>
               </div>
