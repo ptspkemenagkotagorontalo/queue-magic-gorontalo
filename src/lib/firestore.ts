@@ -36,10 +36,9 @@ export const getNextQueueNumber = async (service: string) => {
     const todayEnd = endOfDay(now);
     
     const queueRef = collection(db, 'queues');
-    // Query using the existing index
+    // Query all queues for today, regardless of service
     const q = query(
       queueRef,
-      where('service', '==', service),
       where('createdAt', '>=', Timestamp.fromDate(todayStart)),
       where('createdAt', '<=', Timestamp.fromDate(todayEnd)),
       orderBy('createdAt', 'desc'),
@@ -49,13 +48,13 @@ export const getNextQueueNumber = async (service: string) => {
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) {
-      console.log(`No queues found for ${service} today, starting from 1`);
+      console.log('No queues found today, starting from 1');
       return 1;
     }
     
     const lastQueue = querySnapshot.docs[0].data() as Queue;
     const nextNumber = (lastQueue.number || 0) + 1;
-    console.log(`Last number for ${service}: ${lastQueue.number}, next: ${nextNumber}`);
+    console.log(`Last queue number: ${lastQueue.number}, next: ${nextNumber}`);
     return nextNumber;
   } catch (error) {
     console.error('Error getting next queue number:', error);
@@ -78,7 +77,6 @@ export const addQueueNumber = async (queueData: Omit<Queue, 'createdAt'>) => {
   }
 };
 
-// Get today's queues
 export const getTodayQueues = async () => {
   try {
     const now = getLocalTime();
