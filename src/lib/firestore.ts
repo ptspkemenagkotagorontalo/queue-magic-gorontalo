@@ -8,7 +8,8 @@ import {
   updateDoc,
   doc,
   Timestamp,
-  orderBy
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
@@ -21,7 +22,7 @@ export interface Queue {
   createdAt: Date;
 }
 
-const TIME_ZONE = 'Asia/Singapore'; // GMT+8
+const TIME_ZONE = 'Asia/Singapore';
 
 const getLocalTime = () => {
   return toZonedTime(new Date(), TIME_ZONE);
@@ -40,20 +41,21 @@ export const getNextQueueNumber = async (service: string) => {
       where('service', '==', service),
       where('createdAt', '>=', Timestamp.fromDate(todayStart)),
       where('createdAt', '<=', Timestamp.fromDate(todayEnd)),
-      orderBy('createdAt', 'desc')
+      orderBy('createdAt', 'desc'),
+      limit(1)
     );
     
     const querySnapshot = await getDocs(q);
-    const queues = querySnapshot.docs.map(doc => doc.data());
     
-    // If no queues exist for today, start from 1
-    if (queues.length === 0) {
+    if (querySnapshot.empty) {
+      console.log(`No queues found for ${service} today, starting from 1`);
       return 1;
     }
     
-    // Get the highest number for today and add 1
-    const numbers = queues.map(q => q.number);
-    return Math.max(...numbers) + 1;
+    const lastQueue = querySnapshot.docs[0].data();
+    const nextNumber = lastQueue.number + 1;
+    console.log(`Last number for ${service}: ${lastQueue.number}, next: ${nextNumber}`);
+    return nextNumber;
   } catch (error) {
     console.error('Error getting next queue number:', error);
     throw error;
@@ -68,6 +70,7 @@ export const addQueueNumber = async (queueData: Omit<Queue, 'createdAt'>) => {
       ...queueData,
       createdAt: Timestamp.fromDate(getLocalTime())
     });
+    console.log('Queue number added with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('Error adding queue number:', error);
@@ -91,11 +94,14 @@ export const getTodayQueues = async () => {
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
+    const queues = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: (doc.data().createdAt as Timestamp).toDate()
-    }));
+    })) as Queue[];
+    
+    console.log('Retrieved today queues:', queues.length);
+    return queues;
   } catch (error) {
     console.error('Error getting queues:', error);
     throw error;
@@ -107,6 +113,7 @@ export const updateQueueStatus = async (queueId: string, status: 'waiting' | 'ca
   try {
     const queueRef = doc(db, 'queues', queueId);
     await updateDoc(queueRef, { status });
+    console.log('Updated queue status:', queueId, status);
   } catch (error) {
     console.error('Error updating queue status:', error);
     throw error;
@@ -127,10 +134,12 @@ export const getQueuesByDay = async () => {
       id: doc.id,
       ...doc.data(),
       createdAt: (doc.data().createdAt as Timestamp).toDate()
-    }));
+    })) as Queue[];
+
+    console.log('Retrieved all queues:', queues.length);
 
     // Group queues by day
-    const groupedQueues = queues.reduce((groups: Record<string, any[]>, queue) => {
+    const groupedQueues = queues.reduce((groups: Record<string, Queue[]>, queue) => {
       const date = format(toZonedTime(queue.createdAt, TIME_ZONE), 'yyyy-MM-dd');
       if (!groups[date]) {
         groups[date] = [];
