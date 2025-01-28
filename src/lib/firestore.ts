@@ -9,9 +9,7 @@ import {
   doc,
   Timestamp,
   orderBy,
-  limit,
-  startOfDay as firestoreStartOfDay,
-  endOfDay as firestoreEndOfDay
+  limit
 } from 'firebase/firestore';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
@@ -38,28 +36,26 @@ export const getNextQueueNumber = async (service: string) => {
     const todayEnd = endOfDay(now);
     
     const queueRef = collection(db, 'queues');
-    // Simplified query that doesn't require a composite index
+    // Query using the existing index
     const q = query(
       queueRef,
       where('service', '==', service),
       where('createdAt', '>=', Timestamp.fromDate(todayStart)),
-      where('createdAt', '<=', Timestamp.fromDate(todayEnd))
+      where('createdAt', '<=', Timestamp.fromDate(todayEnd)),
+      orderBy('createdAt', 'desc'),
+      limit(1)
     );
     
     const querySnapshot = await getDocs(q);
-    const todayQueues = querySnapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id
-    }));
     
-    // Find the highest number for today
-    const maxNumber = todayQueues.reduce((max, queue) => {
-      const queueNumber = queue.number || 0;
-      return queueNumber > max ? queueNumber : max;
-    }, 0);
+    if (querySnapshot.empty) {
+      console.log(`No queues found for ${service} today, starting from 1`);
+      return 1;
+    }
     
-    const nextNumber = maxNumber + 1;
-    console.log(`Service: ${service}, Today's max number: ${maxNumber}, Next number: ${nextNumber}`);
+    const lastQueue = querySnapshot.docs[0].data() as Queue;
+    const nextNumber = (lastQueue.number || 0) + 1;
+    console.log(`Last number for ${service}: ${lastQueue.number}, next: ${nextNumber}`);
     return nextNumber;
   } catch (error) {
     console.error('Error getting next queue number:', error);
@@ -67,7 +63,6 @@ export const getNextQueueNumber = async (service: string) => {
   }
 };
 
-// Add a new queue number
 export const addQueueNumber = async (queueData: Omit<Queue, 'createdAt'>) => {
   try {
     const queueRef = collection(db, 'queues');
