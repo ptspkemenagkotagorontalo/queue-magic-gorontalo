@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import { addQueueNumber, getNextQueueNumber } from "@/lib/firestore";
 import {
   BookOpen,
   Briefcase,
@@ -33,16 +34,35 @@ const QueueRetrieval = () => {
   const [queueNumber, setQueueNumber] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const generateQueueNumber = (serviceId: string) => {
-    setSelectedService(serviceId);
-    const newNumber = Math.floor(Math.random() * 100) + 1;
-    setQueueNumber(newNumber);
-    toast({
-      title: "Nomor Antrian Dibuat",
-      description: `Nomor antrian Anda adalah ${newNumber} untuk layanan ${
-        services.find((s) => s.id === serviceId)?.name
-      }`,
-    });
+  const generateQueueNumber = async (serviceId: string) => {
+    try {
+      setSelectedService(serviceId);
+      // Get the next number for this service
+      const nextNumber = await getNextQueueNumber(serviceId);
+      
+      // Add the queue to Firestore
+      await addQueueNumber({
+        number: nextNumber,
+        service: services.find((s) => s.id === serviceId)?.name || serviceId,
+        status: "waiting"
+      });
+
+      setQueueNumber(nextNumber);
+      
+      toast({
+        title: "Nomor Antrian Dibuat",
+        description: `Nomor antrian Anda adalah ${nextNumber} untuk layanan ${
+          services.find((s) => s.id === serviceId)?.name
+        }`,
+      });
+    } catch (error) {
+      console.error('Error generating queue number:', error);
+      toast({
+        title: "Error",
+        description: "Gagal membuat nomor antrian. Silakan coba lagi.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handlePrint = () => {
