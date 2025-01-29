@@ -25,6 +25,11 @@ const ActiveQueues = ({ queues, onCallNumber }: ActiveQueuesProps) => {
     return format(zonedDate, 'HH:mm:ss')
   }
 
+  // Sort queues by createdAt in descending order (newest first)
+  const sortedQueues = [...queues].sort((a, b) => 
+    b.createdAt.getTime() - a.createdAt.getTime()
+  )
+
   return (
     <Card className="p-6 mb-8">
       <h2 className="text-xl font-semibold mb-4">Antrian Aktif</h2>
@@ -39,14 +44,14 @@ const ActiveQueues = ({ queues, onCallNumber }: ActiveQueuesProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {queues.length === 0 ? (
+          {sortedQueues.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-4">
                 Belum ada antrian hari ini
               </TableCell>
             </TableRow>
           ) : (
-            queues.map((queue) => (
+            sortedQueues.map((queue) => (
               <TableRow key={queue.id}>
                 <TableCell className="font-mono font-bold">
                   {queue.number}
