@@ -39,6 +39,11 @@ const PublicDisplay = () => {
     );
   }
 
+  // Sort queues by createdAt in descending order and take only the last 6
+  const displayedQueues = [...queues]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 6);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col">
       <Navigation />
@@ -52,7 +57,7 @@ const PublicDisplay = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {queues.map((queue) => (
+          {displayedQueues.map((queue) => (
             <div
               key={queue.id}
               className={`p-6 rounded-lg bg-gradient-to-br ${
