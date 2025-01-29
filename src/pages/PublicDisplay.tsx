@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
+import { getTodayQueues } from "@/lib/firestore";
+import { useQuery } from "@tanstack/react-query";
+import { Queue } from "@/lib/firestore";
 
 const PublicDisplay = () => {
-  const [queues, setQueues] = useState([]);
+  const { data: queues = [], isLoading } = useQuery({
+    queryKey: ['todayQueues'],
+    queryFn: getTodayQueues,
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
 
-  useEffect(() => {
-    // Simulate fetching queue data
-    const fetchQueues = () => {
-      const today = new Date();
-      const initialQueues = [
-        { id: 1, number: 1, service: "Tata Usaha", status: "waiting", createdAt: today },
-        { id: 2, number: 2, service: "Pendidikan Madrasah", status: "called", createdAt: today },
-        { id: 3, number: 3, service: "P.A.I", status: "waiting", createdAt: today },
-      ];
-      setQueues(initialQueues);
-    };
-
-    fetchQueues();
-  }, []);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Memuat data antrian...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
