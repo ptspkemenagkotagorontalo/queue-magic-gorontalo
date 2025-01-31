@@ -56,7 +56,9 @@ const ActiveQueues = ({ queues, onCallNumber }: ActiveQueuesProps) => {
                 <TableCell className="font-mono font-bold">
                   {queue.number}
                 </TableCell>
-                <TableCell>{queue.service}</TableCell>
+                <TableCell>
+                  {queue.service === "Layanan Haji" ? "Haji dan Umrah" : queue.service}
+                </TableCell>
                 <TableCell>{formatDate(queue.createdAt)}</TableCell>
                 <TableCell>
                   <span
