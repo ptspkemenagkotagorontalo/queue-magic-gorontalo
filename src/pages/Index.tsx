@@ -8,7 +8,7 @@ const Index = () => {
     { id: 2, name: "Pendidikan Madrasah", color: "bg-gradient-to-br from-emerald-400 to-emerald-500" },
     { id: 3, name: "Diniyah dan Pontren", color: "bg-gradient-to-br from-amber-400 to-amber-500" },
     { id: 4, name: "P.A.I", color: "bg-gradient-to-br from-purple-400 to-purple-500" },
-    { id: 5, name: "Layanan Haji", color: "bg-gradient-to-br from-rose-400 to-rose-500" },
+    { id: 5, name: "Haji dan Umrah", color: "bg-gradient-to-br from-rose-400 to-rose-500" },
     { id: 6, name: "Bimas Islam", color: "bg-gradient-to-br from-cyan-400 to-cyan-500" },
     { id: 7, name: "Zakat", color: "bg-gradient-to-br from-indigo-400 to-indigo-500" },
     { id: 8, name: "Wakaf", color: "bg-gradient-to-br from-teal-400 to-teal-500" },
