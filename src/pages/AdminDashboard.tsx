@@ -50,7 +50,8 @@ const AdminDashboard = () => {
         )
       )
 
-      const announcement = `Nomor antrian ${queueToCall.number} untuk layanan ${queueToCall.service}, silakan menuju ke loket`
+      const serviceName = queueToCall.service === "Layanan Haji" ? "Haji dan Umrah" : queueToCall.service
+      const announcement = `Nomor antrian ${queueToCall.number} untuk ${serviceName}, silakan menuju ke loket`
       
       const speech = new SpeechSynthesisUtterance(announcement)
       speech.lang = 'id-ID'
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
 
       toast({
         title: "Nomor Antrian Dipanggil",
-        description: `Memanggil nomor ${queueToCall.number} untuk ${queueToCall.service}`,
+        description: `Memanggil nomor ${queueToCall.number} untuk ${serviceName}`,
       })
     } catch (error) {
       console.error('Error calling number:', error)
