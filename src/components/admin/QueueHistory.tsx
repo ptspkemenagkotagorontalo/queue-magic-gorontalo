@@ -28,7 +28,7 @@ interface QueueHistoryProps {
 
 const QueueHistory = ({ queuesByDay }: QueueHistoryProps) => {
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 3
+  const itemsPerPage = 2
   
   const formatDate = (date: Date) => {
     const zonedDate = toZonedTime(date, TIME_ZONE)
@@ -39,10 +39,10 @@ const QueueHistory = ({ queuesByDay }: QueueHistoryProps) => {
     return format(new Date(dateStr), 'dd MMMM yyyy')
   }
 
-  // Filter dates to show only the last 3 days
-  const threeDaysAgo = format(subDays(new Date(), 3), 'yyyy-MM-dd')
+  // Filter dates to show only today and yesterday
+  const oneDayAgo = format(subDays(new Date(), 1), 'yyyy-MM-dd')
   const filteredDates = Object.keys(queuesByDay)
-    .filter(date => date >= threeDaysAgo)
+    .filter(date => date >= oneDayAgo)
     .sort((a, b) => b.localeCompare(a))
 
   // Calculate pagination
@@ -52,7 +52,7 @@ const QueueHistory = ({ queuesByDay }: QueueHistoryProps) => {
 
   return (
     <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Riwayat Antrian (3 Hari Terakhir)</h2>
+      <h2 className="text-xl font-semibold mb-4">Riwayat Antrian (Hari Ini & Kemarin)</h2>
       {filteredDates.length === 0 ? (
         <p className="text-center py-4">Belum ada riwayat antrian</p>
       ) : (
@@ -73,7 +73,9 @@ const QueueHistory = ({ queuesByDay }: QueueHistoryProps) => {
                   {queuesByDay[date].map((queue: Queue) => (
                     <TableRow key={queue.id}>
                       <TableCell className="font-mono font-bold">{queue.number}</TableCell>
-                      <TableCell>{queue.service}</TableCell>
+                      <TableCell>
+                        {queue.service === "Layanan Haji" ? "Haji dan Umrah" : queue.service}
+                      </TableCell>
                       <TableCell>{formatDate(queue.createdAt)}</TableCell>
                       <TableCell>
                         <span
