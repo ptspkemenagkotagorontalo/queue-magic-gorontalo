@@ -67,18 +67,17 @@ const QueueRetrieval = () => {
 
   const handlePrint = () => {
     const printContent = `
-      <div style="font-family: 'Courier New', monospace; text-align: center; padding: 20px;">
-        <h2 style="margin: 0;">Kementerian Agama</h2>
-        <h3 style="margin: 5px 0;">Kota Gorontalo</h3>
-        <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
-        <h1 style="font-size: 48px; margin: 10px 0;">${queueNumber}</h1>
-        <p style="margin: 5px 0;">${services.find((s) => s.id === selectedService)?.name}</p>
-        <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
-        <small>${new Date().toLocaleString('id-ID')}</small>
+      <div style="font-family: 'Courier New', monospace; text-align: center; padding: 10px; width: 300px;">
+        <div style="font-size: 14px; font-weight: bold;">KEMENAG KOTA GORONTALO</div>
+        <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
+        <div style="font-size: 36px; font-weight: bold; margin: 5px 0;">${queueNumber}</div>
+        <div style="font-size: 12px;">${services.find((s) => s.id === selectedService)?.name}</div>
+        <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
+        <div style="font-size: 10px;">${new Date().toLocaleString('id-ID')}</div>
       </div>
     `;
 
-    const printWindow = window.open('', '', 'width=300,height=400');
+    const printWindow = window.open('', '', 'width=300,height=300');
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
